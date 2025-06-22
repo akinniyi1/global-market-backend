@@ -3,6 +3,7 @@ const path = require("path");
 const jwt = require("jsonwebtoken");
 
 const usersFile = path.join(__dirname, "data-users.json");
+const walletsFile = path.join(__dirname, "data-wallets.json");
 
 exports.registerSeller = (req, res) => {
   const { name, email, password } = req.body;
@@ -19,12 +20,31 @@ exports.registerSeller = (req, res) => {
     email,
     password,
     role: "seller",
+    plan: "free",
     createdAt: new Date().toISOString()
   };
 
   users.push(newUser);
   fs.writeFileSync(usersFile, JSON.stringify(users, null, 2));
 
-  const token = jwt.sign({ id: newUser.id }, process.env.JWT_SECRET);
+  // Create empty wallet for this user
+  const wallets = fs.existsSync(walletsFile)
+    ? JSON.parse(fs.readFileSync(walletsFile))
+    : [];
+
+  wallets.push({
+    email,
+    balance: 0,
+    escrow: 0,
+    history: [],
+    lastUpgrade: null
+  });
+
+  fs.writeFileSync(walletsFile, JSON.stringify(wallets, null, 2));
+
+  const token = jwt.sign({ id: newUser.id, email }, process.env.JWT_SECRET, {
+    expiresIn: "7d"
+  });
+
   res.status(201).json({ token, user: newUser });
 };
