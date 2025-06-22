@@ -5,7 +5,7 @@ const jwt = require("jsonwebtoken");
 const usersFile = path.join(__dirname, "data-users.json");
 const walletsFile = path.join(__dirname, "data-wallets.json");
 
-// ✅ REGISTER SELLER
+// ✅ Register
 exports.registerSeller = (req, res) => {
   const { name, email, password } = req.body;
   if (!name || !email || !password)
@@ -28,7 +28,7 @@ exports.registerSeller = (req, res) => {
   users.push(newUser);
   fs.writeFileSync(usersFile, JSON.stringify(users, null, 2));
 
-  // Create empty wallet for this user
+  // Create wallet
   const wallets = fs.existsSync(walletsFile)
     ? JSON.parse(fs.readFileSync(walletsFile))
     : [];
@@ -50,18 +50,16 @@ exports.registerSeller = (req, res) => {
   res.status(201).json({ token, user: newUser });
 };
 
-// ✅ LOGIN SELLER
+// ✅ Login
 exports.loginSeller = (req, res) => {
   const { email, password } = req.body;
-
   const users = JSON.parse(fs.readFileSync(usersFile));
   const user = users.find(u => u.email === email && u.password === password);
-
-  if (!user) return res.status(400).json({ msg: "Invalid credentials" });
+  if (!user) return res.status(401).json({ msg: "Invalid credentials" });
 
   const token = jwt.sign({ id: user.id, email }, process.env.JWT_SECRET, {
     expiresIn: "7d"
   });
 
-  res.json({ msg: "Login successful", token, user });
+  res.json({ token, user });
 };
