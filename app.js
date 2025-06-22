@@ -21,16 +21,10 @@ files.forEach(file => {
   if (!fs.existsSync(file)) fs.writeFileSync(file, "[]");
 });
 
-// ROUTES
-try {
-  app.use("/api/auth", require("./routes-auth"));
-} catch (err) {
-  console.error("❌ Error loading routes-auth.js:", err.message);
-}
-
-app.get("/", (req, res) => {
-  res.send("🌍 Global Market API is live!");
-});
+// Routes
+app.get("/", (req, res) => res.send("🌍 Global Market API is live!"));
+app.use("/api/auth", require("./routes-auth"));
+app.use("/api/products", require("./routes-products")); // ✅ Product posting + listing
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
